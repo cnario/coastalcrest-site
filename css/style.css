@@ -1518,7 +1518,8 @@ section.parallax-section .section-title h2  , section.parallax-section  .section
 }
 /*------ Services------------------------------------------------*/
 .serv-item{
-	margin-bottom:70px;
+	margin-top:90px;
+
 }
 .serv-item  .content-wrap  {
 	border-bottom:1px solid #eee;
