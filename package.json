@@ -1,8 +1,8 @@
 {
   "name": "coastalcrest-site",
   "version": "1.0.0",
+  "private": true,
   "dependencies": {
-    "nodemailer": "^6.9.4"
+    "nodemailer": "^6.10.1"
   }
 }
-

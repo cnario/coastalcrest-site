@@ -20,3 +20,38 @@
 	opacity:1;
 	visibility:visible;
 }
+
+/* Contact form enhancements: spinner, success card and animations */
+.cf-success-card {
+	display:flex;
+	gap:14px;
+	align-items:center;
+	padding:18px;
+	border-radius:10px;
+	background:linear-gradient(90deg,#e6f7fb,#f6feff);
+	border:1px solid #d9f0f8;
+	animation: cf-fadeInUp .45s ease both;
+	font-family:inherit;
+}
+@keyframes cf-fadeInUp { from{ opacity:0; transform: translateY(8px)} to{opacity:1; transform:none} }
+
+.cf-spinner {
+	width:36px;
+	height:36px;
+	border-radius:50%;
+	border:4px solid rgba(11,95,138,0.12);
+	border-top-color:#0b5f8a;
+	animation: cf-spin 1s linear infinite;
+	flex:0 0 36px;
+}
+@keyframes cf-spin { to { transform: rotate(360deg) } }
+
+.cf-success-text h3{ margin:0 0 6px; font-size:18px; color:#083748; }
+.cf-success-text p{ margin:0; color:#295a66; }
+
+.cf-error { color:#b00020; margin-top:8px; font-size:14px; }
+
+.cf-hidden { display:none !important; }
+
+/* Minimal style for replaced success area so it doesn't jump */
+#contact-form { transition: all 220ms ease; }

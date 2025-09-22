@@ -1,56 +1,58 @@
-// api/send.js (CommonJS with verbose debug for troubleshooting)
+// api/send.js (CommonJS) - serverless function for Vercel
 const nodemailer = require('nodemailer');
 
 module.exports = async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method Not Allowed' });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ ok: false, error: 'Method Not Allowed' });
+  }
 
   try {
     const { name, email, phone, message, website, form_time } = req.body || {};
 
-    // Honeypot
+    // 1) Honeypot: silently drop if filled (return success so bots get no feedback)
     if (website && String(website).trim() !== '') {
       console.warn('Honeypot triggered. Dropping submission.', { website });
       return res.status(200).json({ ok: true, message: 'Message sent' });
     }
 
-    // Basic speed check (as before)
+    // 2) Speed check: if submitted too quickly (<5s), treat as bot and silently drop
     const now = Date.now();
     let loadedAt = parseInt(form_time, 10) || now;
-    if (loadedAt > 1e9 && loadedAt < 1e12 && loadedAt < 1e11) loadedAt = loadedAt * 1000;
+    // Normalize seconds -> ms if necessary
+    if (loadedAt > 0 && loadedAt < 1e12 && loadedAt < 1e11) loadedAt = loadedAt * 1000;
+    if (!loadedAt || loadedAt <= 0) loadedAt = now;
     const delta = now - loadedAt;
     if (delta < 5000) {
       console.warn('Fast submission detected. Delta:', delta);
       return res.status(200).json({ ok: true, message: 'Message sent' });
     }
 
+    // Basic validation
     if (!email || !message) {
       return res.status(400).json({ ok: false, error: 'Missing required fields' });
     }
 
-    // Build transporter
+    // Configure nodemailer transporter for Mailu SMTP using env vars
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT || 587),
-      secure: process.env.SMTP_SECURE === 'true',
+      secure: process.env.SMTP_SECURE === 'true', // true for 465, false for STARTTLS (587)
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
       },
       tls: {
+        // set MAILU_TLS_REJECT_UNAUTHORIZED=false only if using self-signed certs (not recommended)
         rejectUnauthorized: process.env.MAILU_TLS_REJECT_UNAUTHORIZED !== 'false'
-      },
-      // enable debug for nodemailer (this logs to console)
-      logger: true,
-      debug: true
+      }
     });
 
-    // 1) Verify connection/auth
+    // Optional: verify connection/auth
     try {
       await transporter.verify();
       console.log('SMTP verify: OK');
     } catch (vErr) {
       console.error('SMTP verify failed:', vErr && vErr.message ? vErr.message : vErr);
-      // return error so you can see the cause; remove in production
       return res.status(500).json({ ok: false, error: 'SMTP verify failed', details: String(vErr) });
     }
 
@@ -70,10 +72,9 @@ module.exports = async function handler(req, res) {
           `Message:\n${message}\n`
     };
 
-    // 2) Send mail and log response
     try {
       const info = await transporter.sendMail(mailOptions);
-      console.log('sendMail info:', info); // includes messageId and response
+      console.log('sendMail info:', { accepted: info.accepted, response: info.response, messageId: info.messageId });
       return res.status(200).json({ ok: true, message: 'Message sent', info: { messageId: info.messageId, response: info.response } });
     } catch (sendErr) {
       console.error('sendMail failed:', sendErr);
