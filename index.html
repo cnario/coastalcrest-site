@@ -482,11 +482,21 @@
                                             <div class="contact-form-holder fl-wrap">
                                                 <div id="contact-form">
                                                     <div id="message"></div>
-                                                    <form method="post" action="php/contact.php" name="contactform" id="contactform">
-                                                        <input name="name" type="text" id="name" onclick="this.select()" value="Name">
-                                                        <input name="email" type="text" id="email" onclick="this.select()" value="E-mail">
+                                                    <form method="POST" action="/api/send" name="contactForm" id="contactForm">
+                                                        <input name="name" type="text" id="name" onclick="this.select()" value="Name" required />
+                                                        <input name="email" type="text" id="email" onclick="this.select()" value="E-mail" required />
 												        <input type="text" name="phone" id="phone" onclick="this.select()" value="Phone">
-                                                        <textarea name="comments" id="comments" onclick="this.select()">Message</textarea>
+                                                        <textarea name="message" id="comments" onclick="this.select()" required >Message</textarea>
+
+                                                        <!-- Honeypot (should be left empty by humans) -->
+                                                        <div style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+                                                            <label for="website">Website (leave empty)</label>
+                                                            <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+                                                        </div>
+
+                                                        <!-- Timestamp to detect very fast submissions -->
+                                                        <input type="hidden" name="form_time" id="form_time" value="">
+
                                                         <button type="submit" id="submit" data-top-bottom="transform: translateY(-50px);" data-bottom-top="transform: translateY(50px);"><span>Send Message </span></button>
                                                     </form>
                                                 </div>
@@ -599,5 +609,8 @@
         <script type="text/javascript" src="js/plugins.js"></script>
         <script type="text/javascript" src="js/scripts.js"></script>
         <script type="text/javascript" src="js/map.js"></script>
+        <script>
+            document.getElementById('form_time').value = Date.now();
+        </script>
 
 </body></html>
